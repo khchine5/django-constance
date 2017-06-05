@@ -93,8 +93,7 @@ def get_values():
     default_initial = ((name, options[0])
                        for name, options in settings.CONFIG.items())
     # Then update the mapping with actually values from the backend
-    initial = dict(default_initial,
-                   **dict(config._backend.mget(settings.CONFIG.keys())))
+    initial = dict(default_initial, **dict(config._backend.mget(settings.CONFIG)))
 
     return initial
 
@@ -230,14 +229,13 @@ class ConstanceAdmin(admin.ModelAdmin):
         if settings.CONFIG_FIELDSETS:
             context['fieldsets'] = []
             for fieldset_title, fields_list in settings.CONFIG_FIELDSETS.items():
-                fields_exist = all(
-                    field in settings.CONFIG.keys() for field in fields_list
-                )
+                fields_exist = all(field in settings.CONFIG for field in fields_list)
                 assert fields_exist, "CONSTANCE_CONFIG_FIELDSETS contains fields that does not exist"
                 config_values = []
 
-                for name, options in settings.CONFIG.items():
-                    if name in fields_list:
+                for name in fields_list:
+                    options = settings.CONFIG.get(name)
+                    if options:
                         config_values.append(
                             self.get_config_value(name, options, form, initial)
                         )
